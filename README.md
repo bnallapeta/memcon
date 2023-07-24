@@ -2,7 +2,7 @@
 
 Welcome to MemCon, a fun and useful tool to monitor the memory usage of your selected applications over time. This project is intended to help you understand how much memory your applications are consuming in real-time. 
 
-*Note: This application is intended for Macbook only*
+*Note: At the moment, this application works only on MacBook*
 
 ## Key Features
 
@@ -17,16 +17,17 @@ Welcome to MemCon, a fun and useful tool to monitor the memory usage of your sel
 - Golang
 - Root access (some processes require `sudo` permissions to monitor)
 
-1. Download the binary from the latest release on the GitHub project page.
-2. In the terminal, navigate to the directory where you downloaded the binary.
-3. To start the program, run:
+1. Download the binary from the [releases page](https://github.com/bnallapeta/memcon/releases) on the GitHub project page.
+2. In the terminal, navigate to the directory where you downloaded the binary and start the program:
 
 ```bash
+cd <path-to-binary>
 sudo ./memcon -apps <path-to-apps.env> -interval <fetchInterval>
 ```
 
-Replace <path-to-apps.env> with the path to your environment file. If you don't specify -apps, it will take the default file at config/apps.env.  
-<fetchInterval> is the time in seconds between successive fetches for memory usage data. If you don't specify any interval, it will take 360 seconds as the default.
+`<path-to-apps.env>` is the path to your environment file. If you don't specify -apps, it will take the default file at config/apps.env. 
+
+`<fetchInterval>` is the time in seconds between successive fetches for memory usage data. If you don't specify -interval, it will take 360 seconds as the default.
 
 ### For Developers
 1. Clone the repository:
@@ -50,15 +51,15 @@ This creates a binary named memcon in your current directory.
 ```bash
 sudo ./memcon -apps <path-to-apps.env> -interval <fetchInterval>
 ```
-Replace <path-to-apps.env> with the path to your environment file. If you don't specify -apps, it will take the default file at config/apps.env.  
+`<path-to-apps.env>` is the path to your environment file. If you don't specify -apps, it will take the default file at config/apps.env. 
 
-<fetchInterval> is the time in seconds between successive fetches for memory usage data. If you don't specify any interval, it will take 360 seconds as the default.
+`<fetchInterval>` is the time in seconds between successive fetches for memory usage data. If you don't specify -interval, it will take 360 seconds as the default.
 
 ### How it Works
 
 MemCon periodically polls the system to fetch memory usage data of the specified apps. This data is stored in a local SQLite database (`process_memory.db`). A web server is started which serves a page at `http://localhost:8088/visualize` where you can visualize the data.
 
-The `-apps` flag is used to specify an environment file that contains a list of the applications to be monitored. The file contains a comma separated list of values which are the app names. See [apps.env](./config/apps.env) for example. The -interval flag specifies the time interval in seconds between successive memory usage data fetches.
+The `-apps` flag is used to specify an environment file that contains a list of the applications to be monitored. The file contains a comma separated list of values which are the app names. See [apps.env](./config/apps.env) for example. The `-interval` flag specifies the time interval in seconds between successive memory usage data fetches.
 
 ## Data Privacy
 
