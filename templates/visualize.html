@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Memory Usage Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Style for the select element itself */
+        #appName {
+            text-align: center;
+            font-size: 20px;
+            font-family: Arial, sans-serif;
+            color: #333;
+            width: 200px;
+            height: 40px;
+            border-radius: 5px;
+            padding: 5px 10px;
+            border: 1px solid #aaa;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            appearance: none;
+            background-color: #fff;
+            /* background: url(data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23AAAAAA" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>) no-repeat right 0.75rem center/8px 10px; */
+        }
+
+        /* Style for the dropdown options */
+        #appName option {
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            color: #333;
+            padding: 10px;
+        }
+
+        /* Style for the label */
+        label {
+            font-size: 18px;
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        #modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        #modal-content {
+            background-color: #f2f2f2;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 33%;
+            /* height: 20%; */
+            border-radius: 15px;
+        }
+
+        #close {
+            color: #000;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        #close:hover,
+        #close:focus {
+            color: red;
+            cursor: pointer;
+        }
+        
+        #modal-text {
+            color: #000;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        /* Style for stats box */
+        #stats-box {
+            padding: 20px;
+            margin-right: 10%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            margin: 10px;
+            min-width: 200px;
+        }
+        
+        #main-container {
+            display: flex;
+            justify-content: space-evenly;
+        }
+
+        /* Style for the date/time inputs */
+        #startTime, #endTime {
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            color: #333;
+            border-radius: 5px;
+            padding: 5px 10px;
+            border: 1px solid #aaa;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            margin-right: 10px;
+            margin-left: 10px;
+            width: 200px;
+        }
+
+        /* Style for the Fetch Data button */
+        button {
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Style for the date/time inputs */
+        #startTime, #endTime {
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            color: #333;
+            border-radius: 5px;
+            padding: 5px 10px;
+            border: 1px solid #aaa;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            margin-right: 10px;
+        }
+
+        /* Style for the Fetch Data button */
+        button {
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Style for top-box */
+        .top-box {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .datetime-container {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-container">
+
+        <div class="top-box">
+            <!-- <label for="appName">Application</label> -->
+            <select id="appName">
+                <option value="Slack">Slack</option>
+                <option value="Safari">Safari</option>
+                <option value="Firefox">Firefox</option>
+                <option value="Brave">Brave</option>
+                <option value="VSCode">VSCode</option>
+                <option value="VSCodium">VSCodium</option>
+                <option value="Docker">Docker</option>
+                <option value="Gopls">Gopls</option>
+            </select>
+
+            <br><br>
+
+            <label for="startTime">Start Time:</label>
+            <input type="datetime-local" id="startTime">
+            
+            <label for="endTime">End Time:</label>
+            <input type="datetime-local" id="endTime">
+            
+            <button onclick="fetchData()">Fetch Data</button>
+
+            <h1 id="appTitle" style="display: none;"></h1>
+
+        </div>
+
+        <div id="stats-box">
+            <h2>Stats Delights!</h2>
+            <p id="peak-memory">Peak Memory Usage: <span>N/A</span></p>
+            <p id="min-memory">Lowest Memory Usage: <span>N/A</span></p>
+            <p id="average-memory">Average Memory Usage: <span>N/A</span></p>
+        </div>
+    </div>
+
+
+    <div class="chart-container" style="position: relative; height:100vh; max-width:1200px; margin: auto;">        
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <div id="modal">
+        <div id="modal-content">
+            <span id="close">&times;</span>
+            <p id="modal-text"></p>
+        </div>
+    </div>
+
+
+    <script>
+        var modal = document.getElementById('modal');
+        var span = document.getElementById('close');
+        span.onclick = function() {
+            modal.style.display = 'none';
+        }
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+        function showModal(message) {
+            document.getElementById('modal-text').innerText = message;
+            modal.style.display = 'block';
+        }
+
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Memory Usage in MB',
+                    data: [],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        function fetchData() {
+            try {
+                var startTimeString = document.getElementById('startTime').value;
+                var endTimeString = document.getElementById('endTime').value;
+                var appName = document.getElementById('appName').value;
+
+                // Update h1 with appName
+                document.getElementById('appTitle').innerText = appName + " Memory Usage";
+                document.getElementById('appTitle').style.display = "block";
+
+                // Create Date objects
+                var startTime = new Date(startTimeString);
+                var endTime = new Date(endTimeString);
+
+                // If either of the inputs is invalid, throw an error
+                if (isNaN(startTime) || isNaN(endTime)) {
+                    throw new Error('Invalid date input');
+                }
+
+                fetch('/visualize/data?start=' + startTime.toISOString() + '&end=' + endTime.toISOString() + '&app=' + appName)
+                .then(response => response.json())
+                .then(data => {
+                    // Check if data is null
+                    if (data === null || data.length == 0) {
+                        showModal("There is no data recorded for " + appName + " in the selected time range. Please try a different time :)");
+                        return;
+                    }
+
+                    var timestamps = [];
+                    var memoryUsage = [];
+
+                    for(var i = 0; i < data.length; i++) {
+                        var item = data[i];
+                        console.log(data[i])
+
+                        // Filter by appName data
+                        if (item.GroupName.toLowerCase().includes(appName.toLowerCase())) {
+                            var date = new Date(item.Timestamp);
+                            var dateFormatter = new Intl.DateTimeFormat('en', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+                            var formattedDate = dateFormatter.format(date);
+                            timestamps.push(formattedDate);
+                            memoryUsage.push(item.TotalMemory);
+                        }
+                    }
+
+                    var peakMemory = Math.max(...memoryUsage);
+                    var minMemory = Math.min(...memoryUsage);
+                    var sumMemory = memoryUsage.reduce((a, b) => a + b, 0);
+                    var avgMemory = sumMemory / memoryUsage.length;
+                    
+                    document.getElementById('peak-memory').getElementsByTagName('span')[0].innerText = peakMemory + " MB";
+                    document.getElementById('min-memory').getElementsByTagName('span')[0].innerText = minMemory + " MB";
+                    document.getElementById('average-memory').getElementsByTagName('span')[0].innerText = avgMemory.toFixed(2) + " MB";
+
+                    
+                    myChart.data.labels = timestamps;
+                    myChart.data.datasets[0].data = memoryUsage;
+                    myChart.update();
+                }).catch(error => {
+                    console.error('Error:', error);
+                    showModal('An error occurred while fetching the data. Please try again.');
+                });
+            } catch (error) {
+                if (error instanceof RangeError) {
+                    // Invalid date error handling
+                    showModal('Please select a valid time range.');
+                } else {
+                    // Other errors handling
+                    showModal('An unexpected error occurred, please try again.');
+                }
+        }
+    }
+
+    </script>
+</body>
+</html>

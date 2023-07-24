@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <tr>
+            <th>Timestamp</th>
+            <th>PID</th>
+            <th>Process Name</th>
+            <th>Memory (MB)</th>
+        </tr>
+        {{range .}}
+        <tr>
+            <td>{{.Timestamp}}</td>
+            <td>{{.Pid}}</td>
+            <td>{{.ProcessName}}</td>
+            <td>{{.Memory}}</td>
+        </tr>
+        {{end}}
+    </table>
+</body>
+</html>
